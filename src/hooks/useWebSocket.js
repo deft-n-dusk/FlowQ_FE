@@ -4,7 +4,7 @@ export default function useWebSocket() {
   const [metrics, setMetrics] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:2713");
+    const ws = new WebSocket("wss://flowq-be.onrender.com/ws");
 
     ws.onopen = () => {
       console.log("🟢 WebSocket Connected");
