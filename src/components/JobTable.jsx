@@ -44,28 +44,38 @@ export default function JobTable() {
     return () => clearInterval(interval);
   }, []);
 
+const getStatusBadge = (status) => {
+    const styles = {
+      completed: "bg-green-900/30 text-green-400 border border-green-900/50",
+      processing: "bg-blue-900/30 text-blue-400 border border-blue-900/50",
+      delayed: "bg-yellow-900/30 text-yellow-400 border border-yellow-900/50",
+      dead: "bg-red-900/30 text-red-400 border border-red-900/50",
+    };
+    return styles[status] || "bg-slate-700 text-slate-300";
+  };
+
   return (
-    <div className="bg-slate-800 rounded-xl p-5 text-white">
-      <h2 className="text-xl font-semibold mb-4">Jobs</h2>
+    <div className="bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700/50">
+      <h2 className="text-xl font-bold mb-6 text-white">Recent Jobs</h2>
 
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-slate-700 text-left">
-              <th className="py-3">Job ID</th>
-              <th className="py-3">Type</th>
-              <th className="py-3">Status</th>
-              <th className="py-3">Priority</th>
-              <th className="py-3">Attempts</th>
-              <th className="py-3 text-right">Actions</th>
+            <tr className="border-b border-slate-700 text-slate-400 uppercase text-xs tracking-wider">
+              <th className="py-4 px-6 font-semibold">Job ID</th>
+              <th className="py-4 px-6 font-semibold">Type</th>
+              <th className="py-4 px-6 font-semibold">Status</th>
+              <th className="py-4 px-6 font-semibold">Priority</th>
+              <th className="py-4 px-6 font-semibold">Attempts</th>
+              <th className="py-4 px-6 font-semibold text-right">Actions</th>
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className="divide-y divide-slate-700/50">
             {jobs.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center py-6 text-slate-400">
-                  No jobs found
+                <td colSpan="6" className="text-center py-10 text-slate-500 italic">
+                  No jobs found in queue
                 </td>
               </tr>
             ) : (
@@ -73,29 +83,26 @@ export default function JobTable() {
                 <tr
                   key={job.jobId}
                   onClick={() => setSelectedJob(job.jobId)}
-                  className="border-b border-slate-700 cursor-pointer hover:bg-slate-700/40"
+                  className="hover:bg-slate-700/30 transition-colors cursor-pointer group"
                 >
-                  <td className="py-3">
-                    <span title={job.jobId}>{job.jobId.slice(0, 8)}...</span>
+                  <td className="py-4 px-6 font-mono text-white text-sm">
+                    {job.jobId.slice(0, 8)}...
                   </td>
-
-                  <td className="py-3">{job.type}</td>
-
-                  <td className="py-3 capitalize">{job.status}</td>
-
-                  <td className="py-3 capitalize">{job.priority}</td>
-
-                  <td className="py-3">
-                    {job.attempts}/{job.maxAttempts}
+                  <td className="py-4 px-6 text-slate-200">{job.type}</td>
+                  <td className="py-4 px-6">
+                    <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${getStatusBadge(job.status)}`}>
+                      {job.status}
+                    </span>
                   </td>
-
-                  <td className="py-3 text-right">
+                  <td className="py-4 px-6 capitalize text-slate-300">{job.priority}</td>
+                  <td className="py-4 px-6 text-slate-300">{job.attempts}/{job.maxAttempts}</td>
+                  <td className="py-4 px-6 text-right">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setConfirmModal({ isOpen: true, jobId: job.jobId });
                       }}
-                      className="text-red-400 hover:text-red-300 bg-red-900/30 hover:bg-red-900/50 px-3 py-1 rounded text-sm transition-colors"
+                      className="text-red-400 hover:text-red-300 bg-red-900/20 hover:bg-red-900/40 px-4 py-1.5 rounded-lg text-sm transition-all"
                     >
                       Delete
                     </button>
