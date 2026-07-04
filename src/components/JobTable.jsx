@@ -5,7 +5,7 @@ import JobDetail from "./JobDetail";
 export default function JobTable() {
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
-  
+
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, jobId: null });
   const [statusModal, setStatusModal] = useState({ isOpen: false, message: "", isError: false });
 
@@ -44,7 +44,7 @@ export default function JobTable() {
     return () => clearInterval(interval);
   }, []);
 
-const getStatusBadge = (status) => {
+  const getStatusBadge = (status) => {
     const styles = {
       completed: "bg-green-900/30 text-green-400 border border-green-900/50",
       processing: "bg-blue-900/30 text-blue-400 border border-blue-900/50",
@@ -82,8 +82,7 @@ const getStatusBadge = (status) => {
               jobs.map((job) => (
                 <tr
                   key={job.jobId}
-                  onClick={() => setSelectedJob(job.jobId)}
-                  className="hover:bg-slate-700/30 transition-colors cursor-pointer group"
+                  className="hover:bg-slate-700/30 transition-colors"
                 >
                   <td className="py-4 px-6 font-mono text-white text-sm">
                     {job.jobId.slice(0, 8)}...
@@ -95,16 +94,23 @@ const getStatusBadge = (status) => {
                     </span>
                   </td>
                   <td className="py-4 px-6 capitalize text-slate-300">{job.priority}</td>
-                  <td className="py-4 px-6 text-slate-300">{job.attempts}/{job.maxAttempts}</td>
-                  <td className="py-4 px-6 text-right">
+                  <td className="py-4 px-6 text-slate-300">
+                    {Math.min(job.attempts + 1, job.maxAttempts)}/{job.maxAttempts}
+                  </td>
+                  <td className="py-4 px-6 text-right flex items-center justify-end gap-2">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setConfirmModal({ isOpen: true, jobId: job.jobId });
-                      }}
-                      className="text-red-400 hover:text-red-300 bg-red-900/20 hover:bg-red-900/40 px-4 py-1.5 rounded-lg text-sm transition-all"
+                      onClick={() => setSelectedJob(job.jobId)}
+                      className="text-white hover:text-blue-300 bg-blue-900/20 hover:bg-blue-900/40 p-2 rounded-lg transition-all"
+                      title="View Details"
                     >
-                      Delete
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </button>
+                    <button
+                      onClick={() => setConfirmModal({ isOpen: true, jobId: job.jobId })}
+                      className="text-red-400 hover:text-red-300 bg-red-900/20 hover:bg-red-900/40 p-2 rounded-lg transition-all"
+                      title="Delete"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
                   </td>
                 </tr>

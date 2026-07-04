@@ -62,7 +62,7 @@ export default function JobDetail({ jobId, onClose }) {
               } 
             />
             <DetailRow label="Priority" value={job.priority} />
-            <DetailRow label="Attempts" value={`${job.attempts} / ${job.maxAttempts}`} />
+            <DetailRow label="Attempts" value={`${Math.min(job.attempts + 1, job.maxAttempts)} / ${job.maxAttempts}`} />
             <DetailRow label="Processed By" value={job.processedBy || "N/A"} />
             <DetailRow label="Created" value={new Date(job.createdAt).toLocaleString()} />
             
