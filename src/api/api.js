@@ -14,6 +14,9 @@ export const getJobById = async (jobId) => {
 export const createJob = (data) =>
   API.post("/jobs", data);
 
+export const deleteJob = (jobId) =>
+  API.delete(`/jobs/${jobId}`);
+
 export const getDLQ = () =>
   API.get("/dlq");
 
