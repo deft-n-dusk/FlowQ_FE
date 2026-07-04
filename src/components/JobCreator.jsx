@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createJob } from "../api/api";
 
 export default function JobCreator() {
