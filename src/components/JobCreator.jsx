@@ -1,73 +1,129 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createJob } from "../api/api";
 
 export default function JobCreator() {
-  const [type, setType] = useState("SEND_EMAIL");
-  const [priority, setPriority] = useState("medium");
+  const getDefaultJob = () => ({
+    id: crypto.randomUUID(), // UI list track karne ke liye
+    type: "SEND_EMAIL",
+    priority: "medium",
+  });
+
+  const [jobList, setJobList] = useState([getDefaultJob()]);
   const [loading, setLoading] = useState(false);
-  const [idempotencyKey, setIdempotencyKey] = useState("");
   const [modal, setModal] = useState({ isOpen: false, message: "", isError: false });
 
-  useEffect(() => {
-    setIdempotencyKey(crypto.randomUUID());
-  }, []);
+  const handleAddRow = () => {
+    setJobList([...jobList, getDefaultJob()]);
+  };
 
-  const handleCreate = async () => {
+  const handleRemoveRow = (idToRemove) => {
+    if (jobList.length === 1) return; 
+    setJobList(jobList.filter((job) => job.id !== idToRemove));
+  };
+
+  const handleUpdateRow = (id, field, value) => {
+    setJobList(
+      jobList.map((job) => (job.id === id ? { ...job, [field]: value } : job))
+    );
+  };
+
+  const handleFireAll = async () => {
     try {
       setLoading(true);
-      await createJob({
-        type,
-        priority,
-        idempotencyKey: idempotencyKey,
-        payload: { timestamp: Date.now(), email: "test@test.com" },
-      });
+      
+      const promises = jobList.map((job) =>
+        createJob({
+          type: job.type,
+          priority: job.priority,
+          idempotencyKey: crypto.randomUUID(), 
+          payload: { timestamp: Date.now(), bulk_job: true },
+        })
+      );
 
-      setModal({ isOpen: true, message: "Job Created Successfully!", isError: false });
-      setIdempotencyKey(crypto.randomUUID());
+      await Promise.all(promises);
+
+      setModal({
+        isOpen: true,
+        message: `🔥 ${jobList.length} Jobs Fired Successfully!`,
+        isError: false,
+      });
+      
+      setJobList([getDefaultJob()]);
     } catch (err) {
       console.log(err);
-      setModal({ isOpen: true, message: "Failed to create job", isError: true });
+      setModal({ isOpen: true, message: "Failed to create jobs", isError: true });
     } finally {
       setLoading(false);
     }
   };
 
-  const closeModal = () => {
-    setModal({ ...modal, isOpen: false });
-  };
-
   return (
-    <div className="bg-slate-800 rounded-xl p-5 mb-6">
-      <h2 className="text-xl font-semibold mb-4">Create Job</h2>
+    <div className="bg-slate-800 rounded-xl p-5 mb-6 shadow">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-white">Bulk Job Creator</h2>
+        <span className="bg-slate-700 text-slate-300 px-3 py-1 rounded-full text-sm font-medium">
+          Total: {jobList.length}
+        </span>
+      </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          className="bg-slate-700 px-4 py-2 rounded-lg"
-        >
-          <option>SEND_EMAIL</option>
-          <option>GENERATE_PDF</option>
-          <option>SEND_WEBHOOK</option>
-          <option>PROCESS_PAYMENT</option>
-        </select>
+      <div className="space-y-3 mb-5">
+        {jobList.map((job, index) => (
+          <div key={job.id} className="flex flex-col md:flex-row gap-3 items-center bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+            <span className="text-slate-400 font-medium min-w-[24px]">
+              {index + 1}.
+            </span>
+            
+            <select
+              value={job.type}
+              onChange={(e) => handleUpdateRow(job.id, "type", e.target.value)}
+              className="bg-slate-700 text-white px-4 py-2 rounded-lg w-full md:w-auto flex-1 outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option>SEND_EMAIL</option>
+              <option>GENERATE_PDF</option>
+              <option>SEND_WEBHOOK</option>
+              <option>PROCESS_PAYMENT</option>
+            </select>
 
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          className="bg-slate-700 px-4 py-2 rounded-lg"
+            <select
+              value={job.priority}
+              onChange={(e) => handleUpdateRow(job.id, "priority", e.target.value)}
+              className="bg-slate-700 text-white px-4 py-2 rounded-lg w-full md:w-auto flex-1 outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option>high</option>
+              <option>medium</option>
+              <option>low</option>
+            </select>
+
+            <button
+              onClick={() => handleRemoveRow(job.id)}
+              disabled={jobList.length === 1}
+              className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                jobList.length === 1
+                  ? "bg-slate-800 text-slate-600 cursor-not-allowed"
+                  : "bg-red-900/30 text-red-400 hover:bg-red-900/50 hover:text-red-300"
+              }`}
+              title="Remove row"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between gap-4 border-t border-slate-700 pt-5">
+        <button
+          onClick={handleAddRow}
+          className="text-blue-400 hover:text-blue-300 bg-blue-900/20 hover:bg-blue-900/40 px-5 py-2 rounded-lg font-medium transition-colors"
         >
-          <option>high</option>
-          <option>medium</option>
-          <option>low</option>
-        </select>
+          + Add Another Job
+        </button>
 
         <button
-          onClick={handleCreate}
+          onClick={handleFireAll}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg font-medium"
+          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-2 rounded-lg font-bold shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {loading ? "Creating..." : "Create Job"}
+          {loading ? "Firing..." : `🚀 Fire ${jobList.length} Jobs`}
         </button>
       </div>
 
@@ -80,8 +136,8 @@ export default function JobCreator() {
             <p className="text-slate-300 mb-6">{modal.message}</p>
             <div className="flex justify-end">
               <button
-                onClick={closeModal}
-                className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg transition-colors"
+                onClick={() => setModal({ ...modal, isOpen: false })}
+                className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 Close
               </button>
