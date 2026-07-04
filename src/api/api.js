@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://flowq-be.onrender.com",
+  baseURL: "https://flowq-be.onrender.com/api",
 });
 
 export const getJobs = (params = {}) =>
